@@ -1,21 +1,29 @@
+import { db } from '../db';
+import { rsvpTable } from '../db/schema';
 import { type RespondRsvpInput, type Rsvp } from '../schema';
+import { eq } from 'drizzle-orm';
 
 export const respondRsvp = async (input: RespondRsvpInput): Promise<Rsvp> => {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is updating an RSVP response based on the unique link
-    // provided by the guest. Should validate the unique link and update status,
-    // guest count, and message. Sets responded_at timestamp.
-    return Promise.resolve({
-        id: 0, // Placeholder ID
-        project_id: 1, // Placeholder values
-        guest_name: 'Placeholder Guest',
-        guest_email: null,
-        guest_phone: null,
+  try {
+    // Update RSVP record by unique_link
+    const result = await db.update(rsvpTable)
+      .set({
         status: input.status,
         guest_count: input.guest_count,
         message: input.message,
-        unique_link: input.unique_link,
-        responded_at: new Date(),
-        created_at: new Date()
-    } as Rsvp);
+        responded_at: new Date()
+      })
+      .where(eq(rsvpTable.unique_link, input.unique_link))
+      .returning()
+      .execute();
+
+    if (result.length === 0) {
+      throw new Error('RSVP not found with the provided unique link');
+    }
+
+    return result[0];
+  } catch (error) {
+    console.error('RSVP response failed:', error);
+    throw error;
+  }
 };

@@ -1,8 +1,21 @@
+import { db } from '../db';
+import { rsvpTable } from '../db/schema';
 import { type Rsvp } from '../schema';
+import { eq } from 'drizzle-orm';
 
 export const getProjectRsvps = async (projectId: number): Promise<Rsvp[]> => {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is fetching all RSVP entries for a specific project
-    // to allow project owners to see guest responses and manage their event.
-    return [];
+  try {
+    // Query all RSVP entries for the specific project
+    const results = await db.select()
+      .from(rsvpTable)
+      .where(eq(rsvpTable.project_id, projectId))
+      .execute();
+
+    // Return the results as-is since no numeric conversions are needed
+    // All fields in RSVP table are already in the correct types
+    return results;
+  } catch (error) {
+    console.error('Get project RSVPs failed:', error);
+    throw error;
+  }
 };

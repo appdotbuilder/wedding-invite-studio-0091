@@ -1,18 +1,28 @@
+import { db } from '../db';
+import { templatesTable } from '../db/schema';
 import { type CreateTemplateInput, type Template } from '../schema';
 
 export const createTemplate = async (input: CreateTemplateInput): Promise<Template> => {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is creating a new template with provided data
-    // and persisting it in the database. Should validate template_data JSON structure.
-    return Promise.resolve({
-        id: 0, // Placeholder ID
+  try {
+    // Validate template_data is valid JSON
+    JSON.parse(input.template_data);
+    
+    // Insert template record
+    const result = await db.insert(templatesTable)
+      .values({
         name: input.name,
         description: input.description,
         thumbnail_url: input.thumbnail_url,
         template_data: input.template_data,
-        is_active: true,
         is_premium: input.is_premium,
-        created_at: new Date(),
-        updated_at: new Date()
-    } as Template);
+        is_active: true, // Default value
+      })
+      .returning()
+      .execute();
+
+    return result[0];
+  } catch (error) {
+    console.error('Template creation failed:', error);
+    throw error;
+  }
 };
